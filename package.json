@@ -1,0 +1,13 @@
+{
+    "name": "nmap",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "netcraft-js": "^2.6.3",
+        "raw-socket": "^1.8.1",
+        "tcp-packet": "^0.1.1"
+    }
+}
