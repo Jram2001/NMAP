@@ -2,6 +2,10 @@ const net = require("net");
 const raw = require("raw-socket");
 const { Decode } = require("./tcp/tcp");
 const TcpPacket = require("tcp-packet");
+const { resolve } = require("path");
+const { error } = require("console");
+const { extractOptions } = require("../lib/util")
+
 function tcpCheck(host, port = 80, timeout = 1000) {
     return new Promise((resolve) => {
         const socket = new net.Socket();
@@ -105,7 +109,6 @@ function sendTcpProbes(targetIP, port = 80, timeout = 1000) {
 
 function sendPacketAndListen(sourceIP, targetIP, port = 80, timeout = 1000, tcpPacket) {
     return new Promise((resolve) => {
-        let output = {};
 
         const socket = raw.createSocket({ protocol: raw.Protocol.TCP });
 
@@ -132,7 +135,7 @@ function sendPacketAndListen(sourceIP, targetIP, port = 80, timeout = 1000, tcpP
             const srcPort = buffer.readUInt16BE(0);
             const dstPort = buffer.readUInt16BE(2);
             const flags = buffer.readUInt8(13);
-            const decoded = Decode(buffer, true)
+            const decoded = Decode(buffer, true);
             console.log(`Packet from ${source} - srcPort:${srcPort} dstPort:${dstPort} flags:0x${flags.toString(16)}`, decoded);
 
             // Example: detect SYN-ACK
@@ -160,6 +163,40 @@ function sendPacketAndListen(sourceIP, targetIP, port = 80, timeout = 1000, tcpP
     });
 };
 
+function sendPacketAndDecode(sourceIP, targetIP, port = 80, timeout = 1000, tcpPacket) {
+    return new Promise((resolve) => {
+        const socket = raw.createSocket({ protocol: raw.Protocol.TCP });
 
+        console.log(`Sending TCP Packet to ${targetIP}`);
 
-module.exports = { tcpCheck, grabBanner, sendTcpProbes, sendPacketAndListen }
+        socket.send(tcpPacket, 0, tcpPacket.length, targetIP, (err, bytes) => {
+            if (err) {
+                console.error("Send error", error);
+                socket.close();
+                resolve({ error: error });
+            }
+        })
+
+        socket.on('message', (buffer, source) => {
+            if (source !== targetIP) return;
+            const decoded = Decode(buffer, true);
+            return resolve({ decoded });
+        })
+
+        // Timeout handler
+        setTimeout(() => {
+            console.log("No reply received - timeout");
+            socket.close();
+            resolve({ host: targetIP, status: "filtered_or_no_response" });
+        }, timeout);
+
+        socket.on('error', (err) => {
+            console.error("Socket error:", err);
+            socket.close();
+            resolve({ host: targetIP, status: "error" });
+        });
+
+    })
+}
+
+module.exports = { tcpCheck, grabBanner, sendTcpProbes, sendPacketAndListen, sendPacketAndDecode }

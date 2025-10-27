@@ -8,6 +8,8 @@ const findTcpPorts = require('./lib/tcp').findTcpPorts;
 const findUdpPorts = require('./lib/udp').findUdpPorts;
 const findAllTcpPorts = require('./lib/tcp').findAllTcpPorts;
 const tcpProbeSweep = require('./lib/tcp').tcpProbeSweep;
+const tcpProbeDecode = require('./lib/tcp').tcpProbeDecode;
+
 //UTIL
 const sendTcpProbes = require('./utils/tcp.util').sendTcpProbes;
 
@@ -19,7 +21,8 @@ async function main() {
 
     // await udpSweep(subnet);
     // await tcpSweep(subnet);
-    await tcpProbeSweep(ip, targetIP);
+    // await tcpProbeSweep(ip, targetIP);
+    await tcpProbeDecode(ip, targetIP);
     // await sendTcpProbes(targetIP, 53);
     // await pinngSweep(subnet);
     // await tacBanner(ip);
