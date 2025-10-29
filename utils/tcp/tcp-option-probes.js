@@ -172,6 +172,53 @@ const BSD_probe = optPadding(Buffer.concat([
     optTimestamp()
 ]));
 
+
+const P1_OPTION = optPadding(Buffer.concat(
+    optWScale(10),
+    optNOP(),
+    optMSS(1460),
+    optTimestamp(),
+    optSACK()
+));
+
+const P2_OPTION = optPadding(Buffer.concat(
+    optMSS(1400),
+    optWScale(0),
+    optSACK(),
+    optTimestamp(),
+    optEOL()
+));
+
+const P3_OPTION = optPadding(Buffer.concat(
+    optTimestamp(),
+    optNOP(),
+    optNOP(),
+    optWScale(5),
+    optNOP(),
+    optMSS(640)
+));
+
+const P4_OPTION = optPadding(Buffer.concat(
+    optSACK(),
+    optTimestamp(),
+    optWScale(10),
+    optEOL()
+));
+
+const P5_OPTION = optPadding(Buffer.concat(
+    optMSS(536),
+    optSACK(),
+    optTimestamp(),
+    optWScale(10),
+    optEOL()
+));
+
+const P6_OPTION = optPadding(Buffer.concat(
+    optMSS(265),
+    optSACK(),
+    optTimestamp()
+));
+
 // Export all option arrays
 module.exports = {
     // Core Nmap probes
@@ -212,5 +259,13 @@ module.exports = {
     // OS-specific probes
     LINUX_probe,
     WINDOWS_probe,
-    BSD_probe
+    BSD_probe,
+
+    //NMAP-style probes
+    P1_OPTION,
+    P2_OPTION,
+    P3_OPTION,
+    P4_OPTION,
+    P5_OPTION,
+    P6_OPTION
 };

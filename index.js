@@ -15,9 +15,9 @@ const sendTcpProbes = require('./utils/tcp.util').sendTcpProbes;
 
 async function main() {
 
-    const ip = '192.168.0.195';
-    const subnet = '192.168.0';
-    const targetIP = '192.168.0.1';
+    const ip = '10.59.216.214';
+    const subnet = '10.59.216';
+    const targetIP = '10.59.216.38';
 
     // await udpSweep(subnet);
     // await tcpSweep(subnet);
