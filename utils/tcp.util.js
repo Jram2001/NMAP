@@ -166,37 +166,41 @@ function sendPacketAndListen(sourceIP, targetIP, port = 80, timeout = 1000, tcpP
 function sendPacketAndDecode(sourceIP, targetIP, port = 80, timeout = 1000, tcpPacket) {
     return new Promise((resolve) => {
         const socket = raw.createSocket({ protocol: raw.Protocol.TCP });
+        let resolved = false;
+
+        const safeResolve = (value) => {
+            if (!resolved) {
+                resolved = true;
+                socket.close();
+                resolve(value);
+            }
+        };
 
         console.log(`Sending TCP Packet to ${targetIP}`);
 
         socket.send(tcpPacket, 0, tcpPacket.length, targetIP, (err, bytes) => {
             if (err) {
-                console.error("Send error", error);
-                socket.close();
-                resolve({ error: error });
+                console.error("Send error", err);
+                safeResolve({ error: err });
             }
-        })
+        });
 
         socket.on('message', (buffer, source) => {
             if (source !== targetIP) return;
             const decoded = Decode(buffer, true);
-            return resolve({ decoded });
-        })
+            safeResolve({ decoded });
+        });
 
-        // Timeout handler
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             console.log("No reply received - timeout");
-            socket.close();
-            resolve({ host: targetIP, status: "filtered_or_no_response" });
+            safeResolve({ host: targetIP, status: "filtered_or_no_response" });
         }, timeout);
 
         socket.on('error', (err) => {
             console.error("Socket error:", err);
-            socket.close();
-            resolve({ host: targetIP, status: "error" });
+            safeResolve({ host: targetIP, status: "error", error: err });
         });
-
-    })
+    });
 }
 
 module.exports = { tcpCheck, grabBanner, sendTcpProbes, sendPacketAndListen, sendPacketAndDecode }
