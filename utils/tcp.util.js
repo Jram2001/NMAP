@@ -2,9 +2,6 @@ const net = require("net");
 const raw = require("raw-socket");
 const { Decode } = require("./tcp/tcp");
 const TcpPacket = require("tcp-packet");
-const { resolve } = require("path");
-const { error } = require("console");
-const { extractOptions } = require("../lib/util")
 
 function tcpCheck(host, port = 80, timeout = 1000) {
     return new Promise((resolve) => {
