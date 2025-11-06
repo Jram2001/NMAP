@@ -185,13 +185,13 @@ async function main() {
 
             case 'Send TCP Probes and observer': {
                 console.log('\n╔════════════════════════════════════════╗');
-                console.log('║    📡 TCP PROBE & OBSERVER MODE       ║');
+                console.log('║    📡 TCP PROBE & OBSERVER MODE        ║');
                 console.log('║                                        ║');
-                console.log('║    ┌──────┐         ┌──────┐          ║');
-                console.log('║    │PROBE │ ══════> │TARGET│          ║');
-                console.log('║    └──────┘         └──────┘          ║');
-                console.log('║         ↓              ↓              ║');
-                console.log('║    [MONITORING RESPONSES]             ║');
+                console.log('║       ┌──────┐         ┌──────┐        ║');
+                console.log('║       │PROBE │ ══════> │TARGET│        ║');
+                console.log('║       └──────┘         └──────┘        ║');
+                console.log('║             ↓              ↓           ║');
+                console.log('║        [MONITORING RESPONSES]          ║');
                 console.log('╚════════════════════════════════════════╝\n');
 
                 const yourIP = await askQuestion('Enter your source IP: ', rl);
