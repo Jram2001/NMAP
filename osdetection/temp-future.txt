@@ -1,0 +1,119 @@
+/**
+ * Generate probes for SEQ test (6 SYN packets with options)
+ * Used to analyze sequence number predictability
+ */
+generateSEQProbes(count = 6) {
+    const probes = [];
+    const options = optPadding(Buffer.concat([
+        optMSS(1460),
+        optWScale(10),
+        optNOP(),
+        optTimestamp(),
+        optSACK(),
+        optEOL()
+    ]));
+
+    for (let i = 0; i < count; i++) {
+        probes.push({
+            name: `SEQ-${i + 1}`,
+            seqIndex: i,
+            ip: Encode(
+                this.srcIp,
+                this.destIp,
+                4, 0, 0,
+                Math.floor(Math.random() * 65536),
+                { DF: true, MF: false },
+                0, 64, 6, false
+            ),
+            tcp: Encode(
+                this.srcIp,
+                this.destIp,
+                this.srcPort + i,  // Vary source port
+                this.destPort,
+                0, 0,
+                { syn: true },
+                65535, 0,
+                options,
+                Buffer.alloc(0)
+            )
+        });
+    }
+
+    return probes;
+}
+
+/**
+ * Generate probes for U1 test (UDP to closed port)
+ * Expects ICMP Port Unreachable response
+ */
+generateU1() {
+    return {
+        name: 'U1',
+        isUDP: true,
+        ip: Encode(
+            this.srcIp,
+            this.destIp,
+            4, 0, 0,
+            Math.floor(Math.random() * 65536),
+            { DF: true, MF: false },
+            0, 64,
+            17,  // protocol = UDP
+            false
+        ),
+        // UDP header (simplified - you'll need UDP encoder)
+        udp: {
+            srcPort: this.srcPort,
+            destPort: 65433,  // Typically a high, closed port
+            length: 8,
+            checksum: 0,
+            payload: Buffer.alloc(0)
+        }
+    };
+}
+
+/**
+ * Generate ICMP Echo probes for IE test
+ */
+generateIE(count = 2) {
+    const probes = [];
+
+    for (let i = 0; i < count; i++) {
+        probes.push({
+            name: `IE-${i + 1}`,
+            isICMP: true,
+            ip: Encode(
+                this.srcIp,
+                this.destIp,
+                4, 0, 0,
+                Math.floor(Math.random() * 65536),
+                { DF: true, MF: false },
+                0, 64,
+                1,  // protocol = ICMP
+                false
+            ),
+            icmp: {
+                type: 8,      // Echo Request
+                code: 0,
+                checksum: 0,
+                id: Math.floor(Math.random() * 65536),
+                sequence: i + 1,
+                payload: Buffer.alloc(32)  // ICMP data
+            }
+        });
+    }
+
+    return probes;
+}
+
+// Get SEQ analysis probes
+const seqProbes = generator.generateSEQProbes(6);
+
+// Get UDP probe
+const u1Probe = generator.generateU1();
+
+// Get ICMP probes
+const ieProbes = generator.generateIE(2);
+
+console.log('SEQ Probes:', seqProbes.map(p => p.name));
+console.log('UDP Probe:', u1Probe.name);
+console.log('ICMP Probes:', ieProbes.map(p => p.name));

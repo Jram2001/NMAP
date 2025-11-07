@@ -1,3 +1,5 @@
+const NmapProbeOptions = require("../utils/tcp/tcp-option-probes");
+
 /**
  * Converts TCP options from decoded format to Nmap OPS format
  * 
@@ -97,8 +99,6 @@ function convertToNmapOPSFingerprint(packets) {
 
 
 //Extract WIN data window size
-
-
 function extractWindowFingerprint(packets) {
     let windowValues = [];
     let index = 0;

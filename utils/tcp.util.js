@@ -2,7 +2,7 @@ const net = require("net");
 const raw = require("raw-socket");
 const { Decode } = require("./tcp/tcp");
 const TcpPacket = require("tcp-packet");
-
+const { ipv4 } = require("netcraft-js")
 function tcpCheck(host, port = 80, timeout = 1000) {
     return new Promise((resolve) => {
         const socket = new net.Socket();
@@ -184,6 +184,8 @@ function sendPacketAndDecode(sourceIP, targetIP, port = 80, timeout = 1000, tcpP
 
         socket.on('message', (buffer, source) => {
             if (source !== targetIP) return;
+            const DecodeIP = ipv4.DecodeHeader(buffer);
+            console.log(DecodeIP, 'DecodeIP')
             const decoded = Decode(buffer, true);
             safeResolve({ decoded });
         });
