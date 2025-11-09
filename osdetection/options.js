@@ -14,11 +14,12 @@ class NmapProbeGenerator {
      * The TCP packet becomes the payload for the IP packet
      */
     generatePacket(probeName, tcpFlags, tcpOptions = Buffer.alloc(0)) {
+        const currentSrcPort = this.srcPort++;
         // Step 1: Create TCP header+options
         const tcpHeader = tcp.Encode(
             this.srcIp,
             this.destIp,
-            this.srcPort,
+            currentSrcPort,
             this.destPort,
             0,                      // seqNumber
             0,                      // ackNumber (0 for SYN packets)
