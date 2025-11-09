@@ -1,5 +1,6 @@
-const { optEOL, optNOP, optMSS, optWScale, optSACK, optTimestamp, optPadding } = require('./tcpOptions');
-const { tcp, ipv4 } = require('netcraft-js')
+const { optEOL, optNOP, optMSS, optWScale, optSACK, optTimestamp, optPadding } = require('../utils/tcp/option-bulder');
+const { tcp, ipv4 } = require('netcraft-js');
+let counter = 0;
 class NmapProbeGenerator {
     constructor(srcIp, destIp, srcPort, destPort) {
         this.srcIp = srcIp;
@@ -36,10 +37,10 @@ class NmapProbeGenerator {
             0,                                      // DSCP
             0,                                      // ECN
             Math.floor(Math.random() * 65536),     // identification
-            'DFMF',               // flags
+            'DF',                                 // flags
             0,                                      // fragmentOffset
             64,                                     // ttl
-            6,                                      // protocol (TCP)
+            'tcp',                                      // protocol (TCP)
             false,                                  // no IP options
             tcpHeader                              // TCP header becomes IP payload ← KEY!
         );
@@ -86,37 +87,7 @@ class NmapProbeGenerator {
      * T4 Probe - ACK
      */
     generateT4() {
-        // For ACK probe, we need non-zero ACK number
-        const tcpHeader = Encode(
-            this.srcIp,
-            this.destIp,
-            this.srcPort,
-            this.destPort,
-            0,
-            1000,  // Non-zero ACK number
-            { ack: true },
-            65535,
-            0,
-            Buffer.alloc(0),
-            Buffer.alloc(0)
-        );
-
-        const ipPacket = Encode(
-            this.srcIp,
-            this.destIp,
-            4, 0, 0,
-            Math.floor(Math.random() * 65536),
-            { DF: true, MF: false },
-            0, 64, 6, false,
-            tcpHeader  // TCP as IP payload
-        );
-
-        return {
-            name: 'T4',
-            ipPacket: ipPacket,
-            tcpHeader: tcpHeader,
-            totalSize: ipPacket.length
-        };
+        return this.generatePacket('T4', { ack: true }, Buffer.alloc(0));
     }
 
     /**
@@ -130,36 +101,7 @@ class NmapProbeGenerator {
      * T6 Probe - ACK (no options)
      */
     generateT6() {
-        const tcpHeader = Encode(
-            this.srcIp,
-            this.destIp,
-            this.srcPort,
-            this.destPort,
-            0,
-            1000,
-            { ack: true },
-            65535,
-            0,
-            Buffer.alloc(0),
-            Buffer.alloc(0)
-        );
-
-        const ipPacket = Encode(
-            this.srcIp,
-            this.destIp,
-            4, 0, 0,
-            Math.floor(Math.random() * 65536),
-            { DF: true, MF: false },
-            0, 64, 6, false,
-            tcpHeader
-        );
-
-        return {
-            name: 'T6',
-            ipPacket: ipPacket,
-            tcpHeader: tcpHeader,
-            totalSize: ipPacket.length
-        };
+        return this.generatePacket('T5', { ack: true }, Buffer.alloc(0));
     }
 
     /**
@@ -203,20 +145,20 @@ class NmapProbeGenerator {
 }
 
 // Usage:
-const generator = new NmapProbeGenerator(
-    '10.52.155.1',      // srcIp
-    '10.52.155.214',    // destIp (target)
-    12345,              // srcPort
-    80                  // destPort
-);
+// const generator = new NmapProbeGenerator(
+//     '10.52.155.1',      // srcIp
+//     '10.52.155.214',    // destIp (target)
+//     12345,              // srcPort
+//     80                  // destPort
+// );
 
-const probes = generator.generateAllProbes();
+// const probes = generator.generateAllProbes();
 
-probes.forEach(probe => {
-    console.log(`Probe: ${probe.name}`);
-    console.log(`  Total packet size: ${probe.totalSize} bytes`);
-    console.log(`  IP packet (hex): ${probe.ipPacket.toString('hex').substring(0, 40)}...`);
-    console.log(`  TCP header (hex): ${probe.tcpHeader.toString('hex').substring(0, 40)}...`);
-});
+// probes.forEach(probe => {
+//     console.log(`Probe: ${probe.name}`);
+//     console.log(`  Total packet size: ${probe.totalSize} bytes`);
+//     console.log(`  IP packet (hex): ${probe.ipPacket.toString('hex').substring(0, 40)}...`);
+//     console.log(`  TCP header (hex): ${probe.tcpHeader.toString('hex').substring(0, 40)}...`);
+// });
 
-module.exports = NmapProbeGenerator;
+module.exports = { NmapProbeGenerator };

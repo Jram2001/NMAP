@@ -1,50 +1,49 @@
 const NmapProbeOptions = require("../utils/tcp/tcp-option-probes");
-const { tcp, ipv4 } = require("netcraft-js")
+const { tcp, ipv4 } = require('netcraft-js')
+const { NmapProbeGenerator } = require('./options');
+const raw = require("raw-socket");
 
-function buildTcpOs(srcIp, destIp, srcPort, destPort) {
-    const AllProbesArray = [
-        NmapProbeOptions.P1_OPTION,
-        NmapProbeOptions.P2_OPTION,
-        NmapProbeOptions.P3_OPTION,
-        NmapProbeOptions.P4_OPTION,
-        NmapProbeOptions.P5_OPTION,
-        NmapProbeOptions.P6_OPTION
-    ];
-    return AllProbesArray.map(probe => {
-        return tcp.Encode(srcIp, destIp, srcPort, destPort, 0, 0, { syn: true }, 65535, 0, probe);
-    })
-}
 
-async function tcpProbeDecode(sourceIP, targetIP) {
-    console.log(`Starting tcp probe sweep on tarhet: ${targetIP}.0/24`);
-    const tcpPackets = buildTcpOs(sourceIP, targetIP, 33109, 53);
-    const promises = [];
+const targetIP = "10.224.59.6";
+const sourceIP = "10.224.59.214";
 
-    // tcpPackets.map(tcpPacket => {
-    //     promises.push(sendPacketAndDecode(sourceIP, targetIP, 53, 1000, tcpPacket));
-    // })
+/*  
+* Initialise new instance of the generator class
+* Generate all probes
+*/
+let probesGenrator = new NmapProbeGenerator(
+    sourceIP,
+    targetIP,
+    12345,
+    53
+)
+const probes = probesGenrator.generateAllProbes();
 
-    promises.push(sendPacketAndDecode(sourceIP, targetIP, 53, 1000, tcpPackets[0]))
 
-    // tcpPackets.forEach(probe => {
-    //     promises.push(sendPacketAndListen(sourceIP, targetIP, 80, 53, probe));
-    // })
+/*
+* Function to send tcp/ip packet via raw socket
+*/
+function sendProbes() {
+    const socket = raw.createSocket({ protocol: raw.Protocol.TCP });
 
-    const results = await Promise.all(promises);
+    socket.on("message", (buffer) => {
 
-    let options = extractOptions(results[0]?.decoded?.options);
+        const result = ipv4.DecodeHeader(buffer);
+        const tcpResult = tcp.Decode(result.payload);
+        if (result.srcIp === targetIP) {
+            console.log("TCP/IP Probe Response from target:", result);
+            console.log("TCP/IP Probe Response from target:", tcpResult);
+        }
+    });
 
-    let captured = {
-        options,
-        window_size: results[0]?.decoded.windowSize
+    for (let probe of probes) {
+
+        socket.send(probe.tcpHeader, 0, probe.tcpHeader.length, targetIP, (err) => {
+            if (err) {
+                console.error("Error occured :", err)
+            }
+        })
     }
-
-    console.log(matchOSFingerprint(captured), results[0]?.decoded);
-
-    // console.log(printTopOlayoutSignatures(matchAllSignatures(options, olayoutSignatures), olayoutSignatures), 'olayoutSignatures')
-
-
-    // console.log(findMatchingSignatures(options, responsePatterns))
-
-    console.log("probe sweep complete!");
 }
+
+sendProbes()
