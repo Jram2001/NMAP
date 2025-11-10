@@ -2,11 +2,11 @@ const NmapProbeOptions = require("../utils/tcp/tcp-option-probes");
 const { tcp, ipv4 } = require('netcraft-js');
 const { NmapProbeGenerator } = require('./options');
 const raw = require("raw-socket");
-const { buildTn } = require('./finger-printing');
+const { buildTn, convertToNmapOPSFingerprint, extractWindowFingerprint } = require('./finger-printing');
 
 // Configuration
-const TARGET_IP = "10.224.59.6";
-const SOURCE_IP = "10.224.59.214";
+const TARGET_IP = "192.168.0.1";
+const SOURCE_IP = "192.168.0.195";
 const SOURCE_PORT = 12340;
 const TARGET_PORT = 53;
 const IDLE_TIMEOUT_MS = 1000;
@@ -41,8 +41,7 @@ function sendProbes() {
 
         // Filter packets from target IP
         if (ipv4Result.srcIp === TARGET_IP) {
-            const probeIndex = tcpResult.destinationPort % SOURCE_PORT;
-            const tn = buildTn(tcpResult, TARGET_IP, `T${probeIndex}`);
+            const probeIndex = 1 + (tcpResult.destinationPort % SOURCE_PORT);
 
             packetsFromTarget[probeIndex] = {
                 rawData: buffer,
@@ -83,7 +82,18 @@ function onComplete(socket) {
     console.log(`Received ${Object.keys(packetsFromTarget).length}/${probes.length} responses`);
 
     socket.close();
-    console.log(packetsFromTarget);
+    const arr = Object.values(packetsFromTarget);
+    const tcpPackets = arr.map(x => x.tcp);
+    console.log(tcpPackets)
+    console.log(convertToNmapOPSFingerprint(tcpPackets));
+    console.log(extractWindowFingerprint(tcpPackets));
+    for (let i = 0; i < 8; i++) {
+        if (packetsFromTarget[i]) {
+            console.log(buildTn(packetsFromTarget[i].tcp, packetsFromTarget[i].ipv4, `T${i}`, 0));
+        } else {
+            console.log(`T${i}(R=F)`);
+        }
+    }
 
     // TODO: Uncomment when ready to process fingerprint
     // processFingerprint();

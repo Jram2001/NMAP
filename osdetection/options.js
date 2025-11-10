@@ -139,8 +139,8 @@ class NmapProbeGenerator {
             this.generateT4(),
             this.generateT5(),
             this.generateT6(),
-            this.generateT7(),
-            this.generateECN()
+            this.generateT7()
+            // this.generateECN()
         ];
     }
 }

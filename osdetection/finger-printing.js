@@ -106,7 +106,6 @@ function extractWindowFingerprint(packets) {
     let windowValues = [];
     let index = 0;
     for (packet of packets) {
-        console.log('s', packet)
         if (!packet.windowSize) {
             continue;
         }
@@ -119,53 +118,53 @@ function extractWindowFingerprint(packets) {
     return `WIN(${windowValues.join('%')})`;
 }
 
-    function buildTn(tcpPacket, ipPacket, testName, ourSeqNumber = 0) {
-        // No response received
-        if (!tcpPacket || !ipPacket) {
-            return `${testName}(R=N)`;
-        }
-
-        // R - Response received
-        const r = 'Y';
-
-        // DF - Don't Fragment flag
-        const df = ipPacket.flags?.DF ? 'Y' : 'N';
-
-        // T - TTL in hex
-        const ttl = ipPacket.ttl
-            ? ipPacket.ttl.toString(16).toUpperCase()
-            : '';
-
-        // TG - TTL Guess (initial TTL before hops)
-        const tg = guessTTL(ipPacket.ttl);
-
-        // S - Sequence number behavior
-        const s = getSequenceBehavior(tcpPacket.sequenceNumber);
-
-        // A - Acknowledgment number behavior
-        const a = getAckBehavior(tcpPacket.acknowledgmentNumber, ourSeqNumber);
-
-        // F - TCP flags
-        const f = getTCPFlags(tcpPacket.flags);
-
-        // RD - Response Data (payload length)
-        const rd = tcpPacket.dataPayload?.length || 0;
-
-        // Q - Quirks (for now empty, needs analysis)
-        const q = '';
-
-        // O - TCP Options
-        const o = convertToNmapOPS(tcpPacket.options || []);
-
-        // W - Window size in hex
-        const w = tcpPacket.windowSize
-            ? tcpPacket.windowSize.toString(16).toUpperCase()
-            : '0';
-
-        // Build in correct Nmap order
-        return `${testName}(R=${r}%DF=${df}%T=${ttl}%TG=${tg}%S=${s}%A=${a}%F=${f}%RD=${rd}%Q=${q}%O=${o}%W=${w})`;
+function buildTn(tcpPacket, ipPacket, testName, ourSeqNumber = 0) {
+    // No response received
+    if (!tcpPacket || !ipPacket) {
+        return `${testName}(R=N)`;
     }
 
+    // R - Response received
+    const r = 'Y';
+
+    // DF - Don't Fragment flag
+    const df = ipPacket.flags?.DF ? 'Y' : 'N';
+
+    // T - TTL in hex
+    const ttl = ipPacket.ttl
+        ? ipPacket.ttl.toString(16).toUpperCase()
+        : '';
+
+    // TG - TTL Guess (initial TTL before hops)
+    const tg = guessTTL(ipPacket.ttl);
+
+    // S - Sequence number behavior
+    const s = getSequenceBehavior(tcpPacket.sequenceNumber);
+
+    // A - Acknowledgment number behavior
+    const a = getAckBehavior(tcpPacket.acknowledgmentNumber, ourSeqNumber);
+
+    // F - TCP flags
+    const f = getTCPFlags(tcpPacket.flags);
+
+    // RD - Response Data (payload length)
+    const rd = tcpPacket.dataPayload?.length || 0;
+
+    // Q - Quirks (for now empty, needs analysis)
+    const q = '';
+
+    // O - TCP Options
+    const o = convertToNmapOPS(tcpPacket.options || []);
+
+    // W - Window size in hex
+    const w = tcpPacket.windowSize
+        ? tcpPacket.windowSize.toString(16).toUpperCase()
+        : '0';
+
+    // Build in correct Nmap order
+    return `${testName}(R=${r}%DF=${df}%T=${ttl}%TG=${tg}%S=${s}%A=${a}%F=${f}%RD=${rd}%Q=${q}%O=${o}%W=${w})`;
+}
 
 
-module.exports = { buildTn }
+
+module.exports = { buildTn, convertToNmapOPSFingerprint, extractWindowFingerprint }
