@@ -133,6 +133,7 @@ class NmapProbeGenerator {
      */
     generateAllProbes() {
         return [
+            this.generateECN(),
             this.generateT1(),
             this.generateT2(),
             this.generateT3(),
@@ -140,7 +141,6 @@ class NmapProbeGenerator {
             this.generateT5(),
             this.generateT6(),
             this.generateT7()
-            // this.generateECN()
         ];
     }
 }

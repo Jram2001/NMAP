@@ -139,7 +139,7 @@ function buildTn(tcpPacket, ipPacket, testName, ourSeqNumber = 0) {
     const tg = guessTTL(ipPacket.ttl);
 
     // S - Sequence number behavior
-    const s = getSequenceBehavior(tcpPacket.sequenceNumber);
+    const s = getSequenceBehavior(tcpPacket.sequenceNumber, ourSeqNumber);
 
     // A - Acknowledgment number behavior
     const a = getAckBehavior(tcpPacket.acknowledgmentNumber, ourSeqNumber);
@@ -162,7 +162,7 @@ function buildTn(tcpPacket, ipPacket, testName, ourSeqNumber = 0) {
         : '0';
 
     // Build in correct Nmap order
-    return `${testName}(R=${r}%DF=${df}%T=${ttl}%TG=${tg}%S=${s}%A=${a}%F=${f}%RD=${rd}%Q=${q}%O=${o}%W=${w})`;
+    return `${testName}(R=${r}%DF=${df}%T=${ttl}%TG=${tg}%W=${w}%S=${s}%A=${a}%F=${f}%RD=${rd}%Q=${q}%O=${o})`;
 }
 
 

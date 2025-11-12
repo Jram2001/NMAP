@@ -9,7 +9,7 @@ const TARGET_IP = "192.168.0.1";
 const SOURCE_IP = "192.168.0.195";
 const SOURCE_PORT = 12340;
 const TARGET_PORT = 53;
-const IDLE_TIMEOUT_MS = 1000;
+const IDLE_TIMEOUT_MS = 3000;
 const CHECK_INTERVAL_MS = 100;
 
 // State management
@@ -55,6 +55,7 @@ function sendProbes() {
 
     // Send all probes
     for (const probe of probes) {
+
         socket.send(probe.tcpHeader, 0, probe.tcpHeader.length, TARGET_IP, (err) => {
             if (err) {
                 console.error("Error sending probe:", err);
@@ -73,6 +74,7 @@ function sendProbes() {
     }, CHECK_INTERVAL_MS);
 }
 
+
 /**
  * Handle completion of packet collection
  * @param {Object} socket - The raw socket instance
@@ -82,16 +84,11 @@ function onComplete(socket) {
     console.log(`Received ${Object.keys(packetsFromTarget).length}/${probes.length} responses`);
 
     socket.close();
-    const arr = Object.values(packetsFromTarget);
-    const tcpPackets = arr.map(x => x.tcp);
-    console.log(tcpPackets)
-    console.log(convertToNmapOPSFingerprint(tcpPackets));
-    console.log(extractWindowFingerprint(tcpPackets));
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < probes.length; i++) {
         if (packetsFromTarget[i]) {
-            console.log(buildTn(packetsFromTarget[i].tcp, packetsFromTarget[i].ipv4, `T${i}`, 0));
+            console.log(buildTn(packetsFromTarget[i].tcp, packetsFromTarget[i].ipv4, 'T' + packetsFromTarget[i].tcp.destinationPort % 12340, 0));
         } else {
-            console.log(`T${i}(R=F)`);
+            console.log(`T${1}(R=N)`);
         }
     }
 

@@ -20,10 +20,19 @@ function guessTTL(receivedTTL) {
  * A+ = ACK + 1
  * O = Other (non-zero)
  */
-function getSequenceBehavior(seqNumber) {
-    if (seqNumber === 0) return 'Z';
-    // For more accurate detection, you'd need to track what we sent
-    return 'O';  // Other (non-zero)
+function getSequenceBehavior(seqNumber, ourSeqNumber) {
+    switch (seqNumber) {
+        case 0:
+            return 'Z';
+        case seqNumber == ourSeqNumber:
+            return 'A';
+        case ourSeqNumber == seqNumber + 1:
+            return 'A+';
+        default:
+            return 0;
+    }
+    // if (seqNumber === 0) return 'Z';
+    // return 'O';  // Other (non-zero)
 }
 
 /**
