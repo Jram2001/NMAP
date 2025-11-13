@@ -3,14 +3,12 @@
  * Common initial values: 32, 64, 128, 255
  */
 function guessTTL(receivedTTL) {
-    if (!receivedTTL) return '';
+    if (!receivedTTL || receivedTTL < 1) return '';
 
-    if (receivedTTL <= 32) return '20';      // 32
-    if (receivedTTL <= 64) return '40';      // 64
-    if (receivedTTL <= 128) return '80';     // 128
-    if (receivedTTL <= 255) return 'FF';     // 255
-
-    return receivedTTL.toString(16).toUpperCase();
+    if (receivedTTL <= 32) return '20';
+    if (receivedTTL <= 64) return '40';
+    if (receivedTTL <= 128) return '80';
+    return 'FF';
 }
 
 /**
